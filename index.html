@@ -34,8 +34,10 @@
       testPlayer.endscreen = function() {};
       testPlayer.mobileUi({
         fullscreen: {
-          iOS: true
-        }
+          disableiOSNativeFullscreen: true
+        },
+        touchControls: false
+
       });
     }(window, window.videojs));
   </script>

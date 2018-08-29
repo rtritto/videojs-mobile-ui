@@ -8,7 +8,7 @@ const defaults = {
   fullscreen: {
     enterOnRotate: true,
     lockOnRotate: true,
-    iOS: false
+    disableiOSNativeFullscreen: false
   },
   touchControls: {
     seekSeconds: 10,
@@ -48,23 +48,23 @@ const registerPlugin = videojs.registerPlugin || videojs.plugin;
 const onPlayerReady = (player, options) => {
   player.addClass('vjs-mobile-ui');
 
-  if (options.touchControls.disableOnEnd || typeof player.endscreen === 'function') {
-    player.addClass('vjs-mobile-ui-disable-end');
+  // Add touch overlay if not disabled
+  if (options.touchControls !== false) {
+    if (options.touchControls.disableOnEnd || player.usingPlugin('endscreen')) {
+      player.addClass('vjs-mobile-ui-disable-end');
+    }
+    // Insert before the control bar
+    const controlBarIdx = player.children_.indexOf(player.getChild('ControlBar')) - 1;
+
+    player.addChild('touchOverlay', options.touchControls, controlBarIdx);
   }
 
-  if (options.fullscreen.iOS &&
+  if (options.fullscreen.disableiOSNativeFullscreen &&
       videojs.browser.IS_IOS && videojs.browser.IOS_VERSION > 9 &&
       !player.el_.ownerDocument.querySelector('.bc-iframe')) {
     player.tech_.el_.setAttribute('playsinline', 'playsinline');
-    player.tech_.supportsFullScreen = function() {
-      return false;
-    };
+    player.tech_.supportsFullScreen = _ => false
   }
-
-  // Insert before the control bar
-  const controlBarIdx = player.children_.indexOf(player.getChild('ControlBar')) - 1;
-
-  player.addChild('touchOverlay', options.touchControls, controlBarIdx);
 
   let locked = false;
 
@@ -91,11 +91,13 @@ const onPlayerReady = (player, options) => {
     }
   };
 
-  if (videojs.browser.IS_IOS) {
-    window.addEventListener('orientationchange', rotationHandler);
-  } else {
-    // addEventListener('orientationchange') is not a user interaction on Android
-    screen.orientation.onchange = rotationHandler;
+  if (options.fullscreen.enterOnRotate === true) {
+    if (videojs.browser.IS_IOS) {
+      window.addEventListener('orientationchange', rotationHandler);
+    } else {
+      // addEventListener('orientationchange') is not a user interaction on Android
+      screen.orientation.onchange = rotationHandler;
+    }
   }
 
   player.on('ended', _ => {
