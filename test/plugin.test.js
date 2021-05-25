@@ -38,7 +38,6 @@ QUnit.module('videojs-mobile-ui', {
 });
 
 QUnit.test('registers itself with video.js', function(assert) {
-  assert.expect(2);
 
   assert.strictEqual(
     typeof Player.prototype.mobileUi,
@@ -46,13 +45,17 @@ QUnit.test('registers itself with video.js', function(assert) {
     'videojs-mobile-ui plugin was registered'
   );
 
-  this.player.mobileUi();
+});
 
-  // Tick the clock forward enough to trigger the player to be "ready".
+QUnit.test('inserts element before control bar', function(assert) {
+
+  this.player.mobileUi({forceForTesting: true});
+
   this.clock.tick(1);
 
-  assert.ok(
-    this.player.hasClass('vjs-mobile-ui'),
-    'the plugin adds a class to the player'
+  assert.strictEqual(
+    this.player.getChild('TouchOverlay').el_.nextSibling,
+    this.player.getChild('ControlBar').el_,
+    'TouchOverlay is before ControlBar'
   );
 });
