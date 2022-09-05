@@ -208,7 +208,15 @@ const onPlayerReady = (player, options) => {
 const mobileUi = function(options = {}) {
   if (options.forceForTesting || videojs.browser.IS_ANDROID || videojs.browser.IS_IOS) {
     this.ready(() => {
-      onPlayerReady(this, videojs.mergeOptions(defaults, options));
+      if (videojs.obj && videojs.obj.merge) {
+        // vjs 8
+        options = videojs.obj.merge(defaults, options);
+      } else {
+        // vjs < 8
+        options = videojs.mergeOptions(defaults, options);
+      }
+
+      onPlayerReady(this, options);
     });
   }
 };
